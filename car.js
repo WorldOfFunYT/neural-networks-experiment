@@ -1,9 +1,10 @@
 class Car {
-    constructor(x, y, width, height, controlType, maxSpeed=3) {
+    constructor(x, y, width, height, controlType,road, maxSpeed=3 ) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.road = road;
 
         this.speed = 0;
         this.acceleration = 0.2;
@@ -13,11 +14,17 @@ class Car {
         this.damaged = false;
 
         this.useBrain = controlType=="AI";
+        
+        this.timesBraked = 0
+        this.distanceTravelled = 0;
+        this.closestLane = 1;
+
+        this.fitnessScore = 0;
 
         if (controlType != "DUMMY"){
             this.sensor = new Sensor(this);
             this.brain = new NeuralNetwork(
-                [this.sensor.rayCount, 6, 4]
+                [this.sensor.rayCount,6, 4]
             );
         }
         this.controls = new Controls(controlType);
@@ -27,6 +34,9 @@ class Car {
             this.#move();
             this.polygon = this.#createPolygon();
             this.damaged = this.#assessDamage(roadBorders, traffic);
+        }
+        for (let i = 0; i < this.road.laneCount; i++) {
+            this.closestLane = Math.abs(this.x - this.road.getLaneCenter(i)) == Math.min(Math.abs(this.x - this.road.getLaneCenter(i)), Math.abs(this.x - this.road.getLaneCenter(this.closestLane)))? i : this.closestLane;
         }
         if (this.sensor) {
             this.sensor.update(roadBorders, traffic);
@@ -38,6 +48,11 @@ class Car {
                 this.controls.left = outputs[1];
                 this.controls.right = outputs[2];
                 this.controls.reverse = outputs[3];
+                if (this.controls.reverse || !this.controls.forward) {
+                    this.timesBraked += 1;
+                }
+                this.fitnessScore = (-Math.abs(this.road.getLaneCenter(this.closestLane) - this.x) + 1 * 5)
+                + -this.y - -traffic[0].y
             }
         }   
     }
@@ -112,7 +127,7 @@ class Car {
         this.x -= Math.sin(this.angle) * this.speed;
         this.y -= Math.cos(this.angle) * this.speed;
     }
-    draw(ctx, colour) {
+    draw(ctx, colour, drawSensor=false) {
         if (this.damaged) {
             ctx.fillStyle = "grey";
         } else {
@@ -124,7 +139,7 @@ class Car {
             ctx.lineTo(this.polygon[i].x, this.polygon[i].y);
         }
         ctx.fill();
-        if (this.sensor) {
+        if (this.sensor && drawSensor) {
             this.sensor.draw(ctx);
         }   
     }

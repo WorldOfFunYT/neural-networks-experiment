@@ -47,3 +47,4 @@ function getRGBA(value){
     return "rgba("+R+","+G+","+B+","+alpha+")";
 }
     
+const infinity = 100000000000;

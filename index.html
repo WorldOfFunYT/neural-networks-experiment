@@ -7,6 +7,16 @@
     </head>
 
     <body>
+        <div id="sidebar">
+            <div>
+                <button onclick="save()">Save best agent</button>
+                <button onclick="discard()">Discard saved agent</button>
+            </div>
+            <div id="info">
+                <p>Best fitness score: <span id="bestFitnessScore"></span></p>
+                <p>Running agents: <span id="runningAgents"></span></p>
+            </div>
+        </div>
         <canvas id="carCanvas"></canvas>
         <canvas id="networkCanvas"></canvas>
     </body>
